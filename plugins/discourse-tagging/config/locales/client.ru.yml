@@ -1,0 +1,59 @@
+# encoding: utf-8
+# This file contains content for the client portion of Discourse, sent out
+# to the Javascript app.
+#
+# To work with us on translations, see:
+# https://www.transifex.com/projects/p/discourse-org/
+#
+# This is a "source" file, which is used by Transifex to get translations for other languages.
+# After this file is changed, it needs to be pushed by a maintainer to Transifex:
+#
+#   tx push -s
+#
+# Read more here: https://meta.discourse.org/t/contribute-a-translation-to-discourse/14882
+#
+# To validate this YAML file after you change it, please paste it into
+# http://yamllint.com/
+
+ru:
+  js:
+    admin:
+      logs:
+        staff_actions:
+          actions:
+            deleted_tag: "удалить тег"
+            renamed_tag: "переименовать тег"
+
+    topics:
+      bulk:
+        change_tags: "Изменить теги"
+        choose_new_tags: "Выберите новые теги для этих тем:"
+        changed_tags: "Теги изменены."
+
+    tagging:
+      all_tags: "Все теги"
+      selector_all_tags: "все теги"
+      changed: "теги изменены:"
+      tags: "Теги"
+      choose_for_topic: "выберите теги для темы"
+      delete_tag: "Удалить тег"
+      delete_confirm: "Удалить тег?"
+      rename_tag: "Переименовать тег"
+      rename_instructions: "Выберите новое имя для тега:"
+      sort_by: "Сортировать по:"
+      sort_by_count: "количеству"
+      sort_by_name: "имени"
+
+      notifications:
+        watching:
+          title: "Наблюдать"
+          description: "Уведомлять о каждой новой теме с этим тегом и показывать счетчик новых непрочитанных ответов."
+        tracking:
+          title: "Следить"
+          description: "Количество непрочитанных сообщений появится рядом с названием новых тем с этим тегом."
+        regular:
+          title: "Уведомлять"
+          description: "Вам придет уведомление, только если кто-нибудь упомянет ваш @псевдоним или ответит на ваше сообщение."
+        muted:
+          title: "Без уведомлений"
+          description: "Не уведомлять об изменениях в новых темах с этим тегом и скрыть их из непрочитанных."
