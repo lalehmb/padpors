@@ -1,105 +1,196 @@
-<a href="http://www.discourse.org/">![Logo](images/discourse.png)</a>
+### About
 
-Discourse is the 100% open source discussion platform built for the next decade of the Internet. It works as:
+- [Docker](https://docker.com/) is an open source project to pack, ship and run any Linux application in a lighter weight, faster container than a traditional virtual machine.
 
-- a mailing list
-- a discussion forum
-- a long-form chat room
+- Docker makes it much easier to deploy [a Discourse forum](https://github.com/discourse/discourse) on your servers and keep it updated. For background, see [Sam's blog post](http://samsaffron.com/archive/2013/11/07/discourse-in-a-docker-container).
 
-To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
+- The templates and base image configure Discourse with the Discourse team's recommended optimal defaults.
 
-## Screenshots
+### Getting Started
 
-<a href="https://bbs.boingboing.net"><img src="https://www.discourse.org/faq/14/boing-boing-discourse.png" width="720px"></a>
-<a href="https://discuss.newrelic.com/"><img src="https://www.discourse.org/faq/14/new-relic-discourse.png" width="720px"></a>
-<a href="http://discuss.howtogeek.com"><img src="https://www.discourse.org/faq/14/how-to-geek-discourse.png" width="720px"></a>
-<a href="https://talk.turtlerockstudios.com/"><img src="https://www.discourse.org/faq/14/turtle-rock-discourse.jpg" width="720px"></a>
+The simplest way to get started is via the **standalone** template, which can be installed in 30 minutes or less. For detailed install instructions, see
 
-<a href="https://discuss.atom.io"><img src="https://www.discourse.org/faq/14/nexus-7-mobile-discourse.png" alt="Atom" width="410px"></a> &nbsp;
-<a href="//discourse.soylent.com"><img src="https://www.discourse.org/faq/14/iphone-5s-mobile-discourse.png" alt="Soylent" width="270px"></a>
+https://github.com/discourse/discourse/blob/master/docs/INSTALL-cloud.md
 
-Browse [lots more notable Discourse instances](http://www.discourse.org/faq/customers/).
+### Directory Structure
 
-## Development
+#### `/cids`
 
-1. If you're **brand new to Ruby and Rails**, please see [**Discourse as Your First Rails App**](http://blog.discourse.org/2013/04/discourse-as-your-first-rails-app/) or our [**Discourse Vagrant Developer Guide**](docs/VAGRANT.md), which includes a development environment in a virtual machine.
+Contains container ids for currently running Docker containers. cids are Docker's "equivalent" of pids. Each container will have a unique git like hash.
 
-2. If you're familiar with how Rails works and are comfortable setting up your own environment, use our [**Discourse Advanced Developer Guide**](docs/DEVELOPER-ADVANCED.md).
+#### `/containers`
 
-Before you get started, ensure you have the following minimum versions: [Ruby 2.0.0+](http://www.ruby-lang.org/en/downloads/), [PostgreSQL 9.3+](http://www.postgresql.org/download/), [Redis 2.6+](http://redis.io/download). If you're having trouble, please see our [**TROUBLESHOOTING GUIDE**](docs/TROUBLESHOOTING.md) first!
+This directory is for container definitions for your various Discourse containers. You are in charge of this directory, it ships empty.
 
-## Setting up Discourse
+#### `/samples`
 
-If you want to set up a Discourse forum for production use, see our [**Discourse Install Guide**](docs/INSTALL.md).
+Sample container definitions you may use to bootstrap your environment. You can copy templates from here into the containers directory.
 
-If you're looking for business class hosting, see [discourse.org/buy](https://www.discourse.org/buy/).
+#### `/shared`
 
-## Requirements
+Placeholder spot for shared volumes with various Discourse containers. You may elect to store certain persistent information outside of a container, in our case we keep various logfiles and upload directory outside. This allows you to rebuild containers easily without losing important information. Keeping uploads outside of the container allows you to share them between multiple web instances.
 
-Discourse is built for the *next* 10 years of the Internet, so our requirements are high:
+#### `/templates`
 
-| Browsers | Tablets |  Smartphones |
-| -------- | ------- | ----------- |
-| Safari 5.1+| iPad 2+ |  iOS 7+ |
-| Google Chrome 23+ |  Android 4.1+ | Android 4.1+ |
-| Internet Explorer 10+ | Windows 8 | Windows Phone 8 |
-| Firefox 16+ | |
+[pups](https://github.com/samsaffron/pups)-managed templates you may use to bootstrap your environment.
 
-## Built With
+#### `/image`
 
-- [Ruby on Rails](https://github.com/rails/rails) &mdash; Our back end API is a Rails app. It responds to requests RESTfully in JSON.
-- [Ember.js](https://github.com/emberjs/ember.js) &mdash; Our front end is an Ember.js app that communicates with the Rails API.
-- [PostgreSQL](http://www.postgresql.org/) &mdash; Our main data store is in Postgres.
-- [Redis](http://redis.io/) &mdash; We use Redis as a cache and for transient data.
+Dockerfile for both the base image `/discourse_base` and discourse image `/discourse`.
 
-Plus *lots* of Ruby Gems, a complete list of which is at [/master/Gemfile](https://github.com/discourse/discourse/blob/master/Gemfile).
+- `/discourse_base` contains all the OS dependencies including runit, postgres, nginx, ruby.
 
-## Contributing
+- `/discourse` builds on the base image and configures a discourse user and `/var/www/discourse` directory for the Discourse source.
 
-[![Build Status](https://api.travis-ci.org/discourse/discourse.svg?branch=master)](https://travis-ci.org/discourse/discourse)
-[![Code Climate](https://codeclimate.com/github/discourse/discourse.svg)](https://codeclimate.com/github/discourse/discourse)
+The Docker repository will always contain the latest built version at: https://index.docker.io/u/samsaffron/discourse/ , you should not need to build the base image.
 
-Discourse is **100% free** and **open source**. We encourage and support an active, healthy community that
-accepts contributions from the public &ndash; including you!
+### Launcher
 
-Before contributing to Discourse:
+The base directory contains a single bash script which is used to manage containers. You can use it to "bootstrap" a new container, enter, start, stop and destroy a container.
 
-1. Please read the complete mission statements on [**discourse.org**](http://www.discourse.org). Yes we actually believe this stuff; you should too.
-2. Read and sign the [**Electronic Discourse Forums Contribution License Agreement**](http://discourse.org/cla).
-3. Dig into [**CONTRIBUTING.MD**](CONTRIBUTING.md), which covers submitting bugs, requesting new features, preparing your code for a pull request, etc.
-4. Always strive to collaborate [with mutual respect](https://github.com/discourse/discourse/blob/master/docs/code-of-conduct.md).
-5. Not sure what to work on? [**We've got some ideas.**](http://meta.discourse.org/t/so-you-want-to-help-out-with-discourse/3823)
+```
+Usage: launcher COMMAND CONFIG [--skip-prereqs]
+Commands:
+    start:      Start/initialize a container
+    stop:       Stop a running container
+    restart:    Restart a container
+    destroy:    Stop and remove a container
+    enter:      Use docker exec to enter a container
+    logs:       Docker logs for container
+    bootstrap:  Bootstrap a container for the config based on a template
+    rebuild:    Rebuild a container (destroy old, bootstrap, start new)
+```
+
+If the environment variable "SUPERVISED" is set to true, the container won't be detached, allowing a process monitoring tool to manage the restart behaviour of the container.
+
+### Container Configuration
+
+The beginning of the container definition can contain the following "special" sections:
+
+#### templates:
+
+```
+templates:
+  - "templates/cron.template.yml"
+  - "templates/postgres.template.yml"
+```
+
+This template is "composed" out of all these child templates, this allows for a very flexible configuration structure. Furthermore you may add specific hooks that extend the templates you reference.
+
+#### expose:
+
+```
+expose:
+  - "2222:22"
+  - "127.0.0.1:20080:80"
+```
+
+Expose port 22 inside the container on port 2222 on ALL local host interfaces. In order to bind to only one interface, you may specify the host's IP address as `([<host_interface>:[host_port]])|(<host_port>):<container_port>[/udp]` as defined in the [docker port binding documentation](http://docs.docker.com/userguide/dockerlinks/)
 
 
-We look forward to seeing your pull requests!
+#### volumes:
 
-## Security
+```
+volumes:
+  - volume:
+      host: /var/discourse/shared
+      guest: /shared
 
-We take security very seriously at Discourse; all our code is 100% open source and peer reviewed. Please read [our security guide](https://github.com/discourse/discourse/blob/master/docs/SECURITY.md) for an overview of security measures in Discourse, or if you wish to report a security issue.
+```
 
-## The Discourse Team
+Expose a directory inside the host to the container.
 
-The original Discourse code contributors can be found in [**AUTHORS.MD**](docs/AUTHORS.md). For a complete list of the many individuals that contributed to the design and implementation of Discourse, please refer to [the official Discourse blog](http://blog.discourse.org/2013/02/the-discourse-team/) and [GitHub's list of contributors](https://github.com/discourse/discourse/contributors).
+#### links:
+```
+links:
+  - link:
+      name: postgres
+      alias: postgres
+```
+
+Links another container to the current container. This will add `--link postgres:postgres`
+to the options when running the container.
+
+### Upgrading Discourse
+
+The Docker setup gives you multiple upgrade options:
+
+1. Use the front end at http://yoursite.com/admin/upgrade to upgrade an already running image.
+
+2. Create a new base image manually by running:
+  - `./launcher rebuild my_image`
+
+### Single Container vs. Multiple Container
+
+The samples directory contains a standalone template. This template bundles all of the software required to run Discourse into a single container. The advantage is that it is easy.
+
+The multiple container configuration setup is far more flexible and robust, however it is also more complicated to set up. A multiple container setup allows you to:
+
+- Minimize downtime when upgrading to new versions of Discourse. You can bootstrap new web processes while your site is running and only after it is built, switch the new image in.
+- Scale your forum to multiple servers.
+- Add servers for redundancy.
+- Have some required services (e.g. the database) run on beefier hardware.
+
+If you want a multiple container setup, see the `data.yml` and `web_only.yml` templates in the samples directory. To ease this process, `launcher` will inject an env var called `DISCOURSE_HOST_IP` which will be available inside the image.
+
+WARNING: In a multiple container configuration, *make sure* you setup iptables or some other firewall to protect various ports (for postgres/redis).
+On Ubuntu, install the `ufw` or `iptables-persistent` package to manage firewall rules.
+
+### Email
+
+For a Discourse instance to function properly Email must be set up. Use the `SMTP_URL` env var to set your SMTP address, see sample templates for an example. The Docker image does not contain postfix, exim or another MTA, it was omitted because it is very tricky to set up correctly.
+
+### Troubleshooting
+
+View the container logs: `./launcher logs my_container`
+
+Spawn a shell inside your container using `./launcher enter my_container`. This is the most foolproof method if you have host root access.
+
+If you see network errors trying to retrieve code from `github.com` or `rubygems.org` try again - sometimes there are temporary interruptions and a retry is all it takes.
+
+Behind a proxy network with no direct access to the Internet? Add proxy information to the container environment by adding to the existing `env` block in the `container.yml` file:
+
+```yaml
+env:
+    …existing entries…
+    HTTP_PROXY: http://proxyserver:port/
+    http_proxy: http://proxyserver:port/
+    HTTPS_PROXY: http://proxyserver:port/
+    https_proxy: http://proxyserver:port/
+```
+
+### Security
+
+Directory permissions in Linux are UID/GID based, if your numeric IDs on the
+host do not match the IDs in the guest, permissions will mismatch. On clean
+installs you can ensure they are in sync by looking at `/etc/passwd` and
+`/etc/group`, the Discourse account will have UID 1000.
 
 
-## Copyright / License
+### Advanced topics
 
-Copyright 2014 - 2015 Civilized Discourse Construction Kit, Inc.
+- [Setting up SSL with Discourse Docker](https://meta.discourse.org/t/allowing-ssl-for-your-discourse-docker-setup/13847)
+- [Multisite configuration with Docker](https://meta.discourse.org/t/multisite-configuration-with-docker/14084)
+- [Linking containers for a multiple container setup](https://meta.discourse.org/t/linking-containers-for-a-multiple-container-setup/20867)
+- [Replace rubygems.org with taobao mirror to resolve network error in China](https://meta.discourse.org/t/replace-rubygems-org-with-taobao-mirror-to-resolve-network-error-in-china/21988/1)
 
-Licensed under the GNU General Public License Version 2.0 (or later);
-you may not use this work except in compliance with the License.
-You may obtain a copy of the License in the LICENSE file, or at:
+### Developing with Vagrant
 
-   http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+If you are looking to make modifications to this repository, you can easily test
+out your changes before committing, using the magic of
+[Vagrant](http://vagrantup.com).  Install Vagrant as per [the default
+instructions](http://docs.vagrantup.com/v2/installation/index.html), and
+then run:
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+    vagrant up
 
-Discourse logo and “Discourse Forum” ®, Civilized Discourse Construction Kit, Inc.
+This will spawn a new Ubuntu VM, install Docker, and then await your
+instructions.  You can then SSH into the VM with `vagrant ssh`, become
+`root` with `sudo -i`, and then you're right to go.  Your live git repo is
+already available at `/var/discourse`, so you can just `cd /var/discourse`
+and then start running `launcher`.
 
-## Dedication
 
-Discourse is built with [love, Internet style.](http://www.youtube.com/watch?v=Xe1TZaElTAs)
+License
+===
+MIT
